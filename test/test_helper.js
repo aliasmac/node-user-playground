@@ -14,11 +14,17 @@ before((done) => {
 
 
 beforeEach ((done) => {
-    mongoose.connection.collections.users.drop(() => {
-        // Ready to run the next test!
-        done();
+  // GOTCHA: when mongoose loads up the connections from MongoDB, it lowercases the name
+  // of the collections!! 
+  const { users, comments, blogposts } = mongoose.connection.collections 
+  users.drop(() => {
+    comments.drop(() => {
+      blogposts.drop(() => {
+        done()
+      })
     })
-})    
+  })
+});    
 
 
 

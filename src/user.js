@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const PostSchema = require('./post')
+const PostSchema = require('./postSchema')
 const Schema = mongoose.Schema;
 
 
@@ -12,8 +12,12 @@ const UserSchema = new Schema({
       },
       required: [true, 'Name is required.']    
     },
-    posts: [PostSchema],
-    likes: Number
+    posts: [PostSchema], // this represents the sub-doc paradigmn
+    likes: Number,
+    blogPosts: [{
+      type: Schema.Types.ObjectId,
+      ref: 'blogPost'
+    }]
 })
 
 // Creates a function that allows us to compute a value for the virtual property
@@ -21,6 +25,14 @@ const UserSchema = new Schema({
 
 UserSchema.virtual('postCount').get(function() { 
   return this.posts.length;
+})
+
+UserSchema.pre('remove', function(next) {
+  const BlogPost = mongoose.model('blogPost')
+  // this === joe
+  BlogPost.remove({ _id: {$in: this.blogPosts} })
+  .then(() => next())
+
 })
 
 const User = mongoose.model('user', UserSchema)
